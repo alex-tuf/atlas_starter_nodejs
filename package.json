@@ -13,7 +13,11 @@
     "url": "https://github.com/mongodb-university/atlas_starter_nodejs/issues"
   },
   "homepage": "https://github.com/mongodb-university/atlas_starter_nodejs#readme",
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "mongodb": "^3.5.9"
   }
 }
