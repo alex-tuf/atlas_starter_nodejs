@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { MongoClient } = require("mongodb");
 
 async function run() {
@@ -6,12 +7,13 @@ async function run() {
   // Altas cluster specifics. Be sure it includes
   // a valid username and password! Note that in a production environment,
   // you do not want to store your password in plain-text here.
-  const uri =
-    "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+  //const uri = process.env.MONGOSDB_URI;
+  //  "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
 
   // The MongoClient is the object that references the connection to our
   // datastore (Atlas, for example)
-  const client = new MongoClient(uri);
+  console.log("MONGOSDB_URI", process.env.MONGOSDB_URI);
+  const client = new MongoClient(process.env.MONGOSDB_URI);
 
   // The connect() method does not attempt a connection; instead it instructs
   // the driver to connect using the settings provided when a connection
@@ -37,9 +39,12 @@ async function run() {
    * insert them all in one call with collection.insertMany().
    */
 
+  const now = Date.now().toString();
+  const deleteName= `elotes-${now}`;
+
   const recipes = [
     {
-      name: "elotes",
+      name: `${deleteName}`,
       ingredients: [
         "corn",
         "mayonnaise",
@@ -50,7 +55,7 @@ async function run() {
       prepTimeInMinutes: 35,
     },
     {
-      name: "loco moco",
+      name: `loco moco-${now}`,
       ingredients: [
         "ground beef",
         "butter",
@@ -62,7 +67,7 @@ async function run() {
       prepTimeInMinutes: 54,
     },
     {
-      name: "patatas bravas",
+      name: `patatas bravas-${now}`,
       ingredients: [
         "potato",
         "tomato",
@@ -74,7 +79,7 @@ async function run() {
       prepTimeInMinutes: 80,
     },
     {
-      name: "fried rice",
+      name: `fried rice-${now}`,
       ingredients: [
         "rice",
         "soy sauce",
@@ -167,11 +172,23 @@ async function run() {
    *      the recipes.
    */
 
+  // const findOneQueryForDelete = { ingredients: "potato" };
+  const deleteQuery = { name: { $in: [`${deleteName}`, "fried rice"] } };
 
-  const deleteQuery = { name: { $in: ["elotes", "fried rice"] } };
+  try {
+    const findOneResultForDelete = await collection.findOne(deleteQuery);
+    if (findOneResultForDelete === null) {
+      console.log(`Couldn't find any recipes that contain ${deleteName}.\n`);
+    } else {
+      console.log(`Found a recipe for ${deleteName}:\n${JSON.stringify(findOneResultForDelete)}\n`);
+    }
+  } catch (err) {
+    console.error(`Something went wrong trying to find one document for delete: ${err}\n`);
+  }
+
   try {
     const deleteResult = await collection.deleteMany(deleteQuery);
-    console.log(`Deleted ${deleteResult.deletedCount} documents\n`);
+    console.log(`Deleted ${deleteResult.deletedCount} documents for ${deleteName}\n`);
   } catch (err) {
     console.error(`Something went wrong trying to delete documents: ${err}\n`);
   }
